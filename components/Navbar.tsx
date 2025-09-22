@@ -7,7 +7,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50">
-      <div className="flex items-center justify-between gap-10 px-8 py-3 bg-black/40 backdrop-blur-md rounded-full shadow-lg border border-white/10">
+      <div className="flex items-center justify-between gap-10 px-8 py-3 bg-transparent backdrop-blur-md rounded-full shadow-lg border border-white/10">
         {/* Logo */}
         <div className="flex items-center gap-2">
           <span className="text-2xl">🌐</span>
@@ -16,9 +16,9 @@ export default function Navbar() {
 
         {/* Menu */}
         <div className="flex items-center gap-6 text-sm font-medium">
-          <a href="#home" className="hover:text-purple-400 transition">Home</a>
-          <a href="#about" className="hover:text-purple-400 transition">About</a>
-          <a href="#contact" className="hover:text-purple-400 transition">Contact</a>
+          <Link href="/" className="hover:text-purple-400 transition">Home</Link>
+          <Link href="/about" className="hover:text-purple-400 transition">About</Link>
+          <Link href="/contact" className="hover:text-purple-400 transition">Contact</Link>
 
           {isLoggedIn ? (
             <>

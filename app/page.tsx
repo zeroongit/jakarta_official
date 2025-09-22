@@ -2,11 +2,18 @@
 
 import Link from "next/link";
 import LiquidEther from "@/components/LiquidEther";
+import Footer from "@/components/Footer";
+import BlurText from "@/components/BlurText";
+import TrueFocus from "@/components/TrueFocus";
 
-export default function HomePage({ isLoggedIn }: { isLoggedIn: boolean }) {
+export default function HomePage() {
+  const handleAnimationComplete = () => {
+    console.log("All letters have animated!");
+  };
+
   return (
     <div className="relative text-white">
-      {/* Background global */}
+      {/* Background */}
       <div className="fixed inset-0 -z-10">
         <LiquidEther
           colors={["#5227FF", "#FF9FFC", "#B19EEF"]}
@@ -27,80 +34,53 @@ export default function HomePage({ isLoggedIn }: { isLoggedIn: boolean }) {
         />
       </div>
 
-      {/* Navbar */}
-      <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-black/30 backdrop-blur-md rounded-full px-6 py-3 flex items-center gap-6">
-        <div className="font-bold text-lg">Jakarta Official</div>
-        <div className="flex gap-4">
-          <a href="#home">Home</a>
-          <a href="#about">About</a>
-          <a href="#contact">Contact</a>
-        </div>
-        <div className="ml-auto">
-          {isLoggedIn ? (
-            <a href="/profile" className="hover:underline">
-              My Profile
-            </a>
-          ) : (
-            <a href="/login" className="hover:underline">
-              Login
-            </a>
-          )}
-        </div>
-      </nav>
-
       {/* Hero Section */}
-      <section
-        id="home"
-        className="h-screen flex flex-col items-center justify-center text-center bg-black/40 backdrop-blur-sm"
-      >
-        <h1 className="text-4xl md:text-6xl font-bold">
-          Selamat Datang di{" "}
-          <span className="text-purple-400">Jakarta Official</span>
-        </h1>
-        <p className="mt-4 text-lg md:text-xl text-gray-200">
-          Komunitas anak muda kreatif di Jakarta Barat
-        </p>
-      </section>
+      <div className="h-screen flex flex-col items-center justify-center text-center bg-transparent backdrop-blur-sm px-4">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold space-y-3">
+            {/* BlurText dengan gradient */}
+            <BlurText
+              text="Welcome To"
+              delay={150}
+              animateBy="words"
+              direction="top"
+              onAnimationComplete={handleAnimationComplete}
+              className="inline-block px-2 bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text  mb-8"
+            />
 
-      {/* About Section */}
-      <section
-        id="about"
-        className="min-h-screen flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      >
-        <div className="max-w-3xl text-center">
-          <h2 className="text-4xl font-bold mb-6">About Us</h2>
-          <p className="text-lg text-gray-200">
-            Jakarta Official adalah komunitas anak muda dari Kembangan, Jakarta
-            Barat. Kami hadir untuk berbagi ide, mengadakan event, dan membangun
-            jaringan kreatif. Gabung untuk terhubung dengan sesama dan tumbuh
-            bersama.
-          </p>
+            {/* GlitchText */}
+            <TrueFocus 
+            sentence="Jakarta Official"
+            manualMode={false}
+            blurAmount={5}
+            borderColor="red"
+            animationDuration={2}
+            pauseBetweenAnimations={1}
+            />
+          </h1>
         </div>
-      </section>
 
-      {/* Contact Section */}
-      <section
-        id="contact"
-        className="min-h-screen flex flex-col items-center justify-center bg-black/70 backdrop-blur-sm"
-      >
-        <h2 className="text-4xl font-bold mb-6">Contact</h2>
-        <p className="text-lg text-gray-200 mb-4">
-          Punya pertanyaan? Hubungi kami di:
+        <p className="mt-4 text-lg md:text-xl text-gray-200">
+          Youth Community Creative at West Jakarta.
         </p>
-        <a
-          href="mailto:info@jakartaofficial.com"
-          className="text-purple-400 hover:underline"
-        >
-          info@jakartaofficial.com
-        </a>
-      </section>
 
-      {/* Footer */}
-      <footer className="bg-black/80 text-center py-6">
-        <p className="text-gray-400">
-          © 2025 Jakarta Official. All rights reserved.
-        </p>
-      </footer>
+        <div className="mt-6 flex gap-4">
+          <Link
+            href="/login"
+            className="px-6 py-3 bg-white text-black rounded-full font-semibold hover:bg-gray-200 transition"
+          >
+            Get Started
+          </Link>
+          <Link
+            href="/about"
+            className="px-6 py-3 bg-gray-700 rounded-full font-semibold hover:bg-gray-600 transition"
+          >
+            Learn More
+          </Link>
+        </div>
+
+        <Footer />
+      </div>
     </div>
   );
 }
