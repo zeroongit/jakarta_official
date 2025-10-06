@@ -15,3 +15,18 @@ html {
 ::-webkit-scrollbar-track {
   background: #111827;
 }
+
+@keyframes toast-slide-down {
+  from {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+[data-sonner-toast] {
+  animation: toast-slide-down 0.4s ease forwards;
+}

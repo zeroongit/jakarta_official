@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import LiquidEther from "@/components/LiquidEther";
-import Footer from "@/components/Footer";
 import BlurText from "@/components/BlurText";
 import TrueFocus from "@/components/TrueFocus";
 
@@ -34,8 +33,7 @@ export default function HomePage() {
         />
       </div>
 
-      {/* Hero Section */}
-      <div className="h-screen flex flex-col items-center justify-center text-center bg-transparent backdrop-blur-sm px-4">
+      <div className="h-screen flex flex-col items-center justify-center text-center bg-transparent px-4">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold space-y-3">
             {/* BlurText dengan gradient */}
@@ -48,7 +46,7 @@ export default function HomePage() {
               className="inline-block px-2 bg-gradient-to-r from-sky-600 to-blue-700 bg-clip-text  mb-8"
             />
 
-            {/* GlitchText */}
+            {/* TrueFocus */}
             <TrueFocus 
             sentence="Jakarta Official"
             manualMode={false}
@@ -78,8 +76,6 @@ export default function HomePage() {
             Learn More
           </Link>
         </div>
-
-        <Footer />
       </div>
     </div>
   );
