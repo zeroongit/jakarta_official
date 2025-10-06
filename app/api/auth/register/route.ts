@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
-    const newUser = await User.create({
+    const _newUser = await User.create({
       communityId: `JKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
       name,
       email,

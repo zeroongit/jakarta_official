@@ -4,6 +4,7 @@ import Link from "next/link";
 import LiquidEther from "@/components/LiquidEther";
 import BlurText from "@/components/BlurText";
 import TrueFocus from "@/components/TrueFocus";
+import Image from "next/image";
 
 export default function AboutPage() {
   return (
@@ -34,7 +35,7 @@ export default function AboutPage() {
         
         {/* Kiri: Foto */}
         <div className="w-full md:w-1/2 flex justify-center">
-          <img
+          <Image
             src="/images/about-photo.jpg"
             alt="About Jakarta Official"
             className="max-w-full h-auto object-contain rounded-xl shadow-lg"

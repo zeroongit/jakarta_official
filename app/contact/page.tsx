@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import LiquidEther from "@/components/LiquidEther";
-import Footer from "@/components/Footer";
+import Image from "next/image";
 import BlurText from "@/components/BlurText";
 
 export default function ContactPage() {
@@ -53,7 +53,7 @@ export default function ContactPage() {
             rel="noopener noreferrer"
             className="text-red-400 hover:scale-110 transition-transform"
         >
-            <img src="/icons/gmail.png" alt="Email" className="w-10 h-10" />
+            <Image src="/icons/gmail.png" alt="Email" className="w-10 h-10" />
         </a>
 
         {/* Instagram */}
@@ -63,7 +63,7 @@ export default function ContactPage() {
             rel="noopener noreferrer"
             className="text-purple-400 hover:scale-110 transition-transform"
         >
-            <img src="/icons/instagram.png" alt="Instagram" className="w-10 h-10" />
+            <Image src="/icons/instagram.png" alt="Instagram" className="w-10 h-10" />
         </a>
 
         {/* WhatsApp */}
@@ -73,7 +73,7 @@ export default function ContactPage() {
             rel="noopener noreferrer"
             className="text-green-400 hover:scale-110 transition-transform"
         >
-            <img src="/icons/whatsapp.png" alt="WhatsApp" className="w-10 h-10" />
+            <Image src="/icons/whatsapp.png" alt="WhatsApp" className="w-10 h-10" />
         </a>
         </div>
 

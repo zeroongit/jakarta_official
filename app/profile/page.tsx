@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import useSWR, { mutate } from "swr";
 import { useState, useRef } from "react";
+import Image from "next/image";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -123,7 +124,7 @@ export default function ProfilePage() {
         {!editing ? (
           <>
             <div className="flex items-center gap-4">
-              <img
+              <Image
                 src={user.profileImage || "/images/default-avatar.jpg"}
                 alt="User Avatar"
                 className="w-16 h-16 rounded-full border border-white/30 cursor-pointer"
@@ -179,7 +180,7 @@ export default function ProfilePage() {
               {uploading ? (
                 <p className="text-xs text-gray-400 mt-1">Mengupload...</p>
               ) : (
-                <img
+                <Image
                   src={form.profileImage || "/images/default-avatar.jpg"}
                   alt="Preview"
                   className="mt-3 w-20 h-20 rounded-full border border-white/20 object-cover"

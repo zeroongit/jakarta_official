@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { v2 as cloudinary } from "cloudinary";
+import { v2 as cloudinary, UploadApiResponse } from "cloudinary";
+import { UploadApiErrorResponse } from "cloudinary";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
@@ -7,13 +8,16 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
+interface CloudinaryUploadResult extends UploadApiResponse {
+}
+
 export async function POST(req: Request) {
   try {
-    const contentType = req.headers.get("content-type") || "";
+    const contentType = req.headers.get("content-type") || ""; 
 
     // 🧩 Kasus 1: jika base64 (JSON body)
     if (contentType.includes("application/json")) {
-      const { image } = await req.json();
+      const { image }: { image: string | undefined } = await req.json();
       if (!image) {
         return NextResponse.json(
           { success: false, message: "No image data provided" },
@@ -21,7 +25,7 @@ export async function POST(req: Request) {
         );
       }
 
-      const result = await cloudinary.uploader.upload(image, {
+      const result: UploadApiResponse = await cloudinary.uploader.upload(image, {
         folder: "jakarta_official",
       });
 
@@ -40,29 +44,28 @@ export async function POST(req: Request) {
         );
       }
 
-      // 🧠 Konversi File ke buffer
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
       // 🚀 Upload ke Cloudinary
-      const result = await new Promise((resolve, reject) => {
+      const result: CloudinaryUploadResult = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: "jakarta_official" },
-          (error, result) => {
+          (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
             if (error) reject(error);
-            else resolve(result);
+            else if (result) resolve(result as CloudinaryUploadResult); 
+            else reject(new Error("Cloudinary upload failed with no error message."));
           }
         );
         uploadStream.end(buffer);
       });
-
       return NextResponse.json({
         success: true,
-        url: (result as any).secure_url,
+        url: result.secure_url, 
       });
     }
 
-    // Jika format tidak dikenali
+
     return NextResponse.json(
       { success: false, message: "Unsupported content type" },
       { status: 400 }

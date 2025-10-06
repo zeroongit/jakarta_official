@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import User from "@/models/User";
+import User, { IUser } from "@/models/User"; 
 
-// ✅ GET user by email
 export async function GET(req: Request) {
   try {
     await connectDB();
-    const { searchParams } = new URL(req.url);
+    // Gunakan NextRequest jika Anda berada di Next.js 13/14 App Router
+    const { searchParams } = new URL(req.url); 
     const email = searchParams.get("email");
 
     if (!email) {
@@ -25,20 +25,29 @@ export async function GET(req: Request) {
   }
 }
 
-// ✅ PUT update user (nama, telepon, foto profil)
+
 export async function PUT(req: Request) {
   try {
     await connectDB();
-    const { email, name, phone, profileImage } = await req.json();
+    // Mendapatkan data dari body request
+    const body = await req.json(); 
+    const { email, name, phone, profileImage } = body;
 
     if (!email) {
       return NextResponse.json({ error: "Email wajib diisi" }, { status: 400 });
     }
 
-    const updateData: Record<string, any> = {};
+
+    const updateData: Partial<IUser> = {};
+    
     if (name) updateData.name = name;
     if (phone) updateData.phone = phone;
     if (profileImage) updateData.profileImage = profileImage;
+
+    // Pastikan updateData tidak kosong sebelum update
+    if (Object.keys(updateData).length === 0) {
+        return NextResponse.json({ error: "Tidak ada data yang perlu diperbarui" }, { status: 400 });
+    }
 
     const user = await User.findOneAndUpdate({ email }, updateData, {
       new: true,
@@ -64,6 +73,7 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     await connectDB();
+    // Mendapatkan data dari body request
     const { email } = await req.json();
 
     if (!email) {
