@@ -8,8 +8,7 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
-interface CloudinaryUploadResult extends UploadApiResponse {
-}
+
 
 export async function POST(req: Request) {
   try {

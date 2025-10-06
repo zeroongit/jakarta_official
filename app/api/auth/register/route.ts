@@ -21,18 +21,6 @@ export async function POST(req: Request) {
     const hashed = password ? await bcrypt.hash(password, 10) : null;
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
-
-    const _newUser = await User.create({
-      communityId: `JKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
-      name,
-      email,
-      phone,
-      password: hashed,
-      otp,
-      otpExpires,
-      verified: false,
-    });
 
     const transporter = nodemailer.createTransport({
       service: "gmail",

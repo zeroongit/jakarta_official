@@ -40,6 +40,11 @@ interface SimOptions {
   BFECC: boolean;
 }
 
+// Menghapus ShaderPassProps dan UpdateArgs yang tidak terpakai
+// (Menghilangkan warning 'is defined but never used')
+// interface ShaderPassProps {...} 
+// interface UpdateArgs {...} 
+
 interface LiquidEtherWebGL {
   output?: { simulation?: { options: SimOptions; resize: () => void } };
   autoDriver?: {
@@ -56,25 +61,8 @@ interface LiquidEtherWebGL {
   dispose: () => void;
 }
 
-// Tambahkan tipe untuk properti shader pass
-interface ShaderPassProps {
-  material?: {
-    vertexShader: string;
-    fragmentShader: string;
-    uniforms: Record<string, { value: unknown }>; // Tipe yang lebih spesifik
-    blending?: THREE.Blending;
-    depthWrite?: boolean;
-    transparent?: boolean;
-  };
-  output?: THREE.WebGLRenderTarget | null;
-  output0?: THREE.WebGLRenderTarget | null;
-  output1?: THREE.WebGLRenderTarget | null;
-}
-
 // Mendefinisikan tipe untuk Uniforms THREE.js
 type Uniforms = Record<string, { value: unknown }>;
-// Tipe untuk argumen update Viscous/Poisson
-type UpdateArgs = { [key: string]: unknown };
 
 // ----------------------------------------------------------------------
 // Komponen Utama
@@ -226,7 +214,6 @@ export default function LiquidEther({
       dispose() {
         const c = this.container;
         if (!c) return;
-        // Hapus listener tanpa type assertion 'as EventListener' karena event type sudah spesifik
         c.removeEventListener('mousemove', this._onMouseMove as EventListener);
         c.removeEventListener('touchstart', this._onTouchStart as EventListener);
         c.removeEventListener('touchmove', this._onTouchMove as EventListener);
@@ -351,8 +338,7 @@ export default function LiquidEther({
       update() {
         if (!this.enabled) return;
         const now = performance.now();
-        // Menggunakan 'manager as WebGLManager' untuk mengakses properti
-        const idle = now - this.manager.lastUserInteraction; 
+        const idle = now - this.manager.lastUserInteraction;
         if (idle < this.resumeDelay) {
           if (this.active) this.forceStop();
           return;
@@ -390,8 +376,6 @@ export default function LiquidEther({
         this.mouse.setNormalized(this.current.x, this.current.y);
       }
     }
-
-    // Shaders (tidak perlu diubah)
 
     const face_vert = `
   attribute vec3 position;
@@ -564,9 +548,7 @@ export default function LiquidEther({
 }
 `;
 
-    // type Uniforms = Record<string, { value: any }>; // Didefinisikan di atas
-    
-    // Perbaikan: Ganti 'any' dengan tipe yang lebih spesifik
+    // Perbaikan: Tentukan tipe material
     interface ShaderPassConfig {
         material?: THREE.ShaderMaterialParameters;
         output?: THREE.WebGLRenderTarget | null;
@@ -582,12 +564,14 @@ export default function LiquidEther({
       material: THREE.RawShaderMaterial | null = null;
       geometry: THREE.BufferGeometry | null = null;
       plane: THREE.Mesh | null = null;
+      // Perbaikan: Ganti 'props: any'
       constructor(props: ShaderPassConfig) {
         this.props = props || {};
         this.uniforms = this.props.material?.uniforms as (Uniforms | undefined);
       }
-
-      init(..._args: unknown[]) { 
+      // Perbaikan: Ganti '..._args: any[]' menjadi '..._args: unknown[]'
+      // Warning: '_args' is defined but never used. -> Abaikan dengan _args
+      init(..._args: unknown[]) {
         this.scene = new THREE.Scene();
         this.camera = new THREE.Camera();
         if (this.uniforms) {
@@ -597,6 +581,8 @@ export default function LiquidEther({
           this.scene.add(this.plane);
         }
       }
+      // Perbaikan: Ganti '..._args: any[]' menjadi '..._args: unknown[]'
+      // Warning: '_args' is defined but never used. -> Abaikan dengan _args
       update(..._args: unknown[]) {
         if (!Common.renderer || !this.scene || !this.camera) return;
         Common.renderer.setRenderTarget(this.props.output || null);
@@ -607,7 +593,8 @@ export default function LiquidEther({
 
     class Advection extends ShaderPass {
       line!: THREE.LineSegments;
-      constructor(simProps: any) {
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) { 
         super({
           material: {
             vertexShader: face_vert,
@@ -616,14 +603,14 @@ export default function LiquidEther({
               boundarySpace: { value: simProps.cellScale },
               px: { value: simProps.cellScale },
               fboSize: { value: simProps.fboSize },
-              velocity: { value: simProps.src.texture },
+              velocity: { value: (simProps.src as THREE.WebGLRenderTarget).texture },
               dt: { value: simProps.dt },
               isBFECC: { value: true }
             }
           },
-          output: simProps.dst
+          output: simProps.dst as THREE.WebGLRenderTarget
         });
-        this.uniforms = this.props.material!.uniforms as Uniforms; // Type assertion aman
+        this.uniforms = this.props.material!.uniforms as Uniforms;
         this.init();
       }
       init() {
@@ -644,7 +631,6 @@ export default function LiquidEther({
         this.line = new THREE.LineSegments(boundaryG, boundaryM);
         this.scene!.add(this.line);
       }
-      // Perbaikan: Tentukan tipe yang diharapkan
       update(args?: { dt?: number; isBounce?: boolean; BFECC?: boolean }) {
         const { dt, isBounce, BFECC } = args || {};
         if (!this.uniforms) return;
@@ -657,11 +643,12 @@ export default function LiquidEther({
 
     class ExternalForce extends ShaderPass {
       mouse!: THREE.Mesh;
-      constructor(simProps: any) {
-        super({ output: simProps.dst });
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) {
+        super({ output: simProps.dst as THREE.WebGLRenderTarget });
         this.init(simProps);
       }
-      init(simProps: any) {
+      init(simProps: Record<string, unknown>) {
         super.init();
         const mouseG = new THREE.PlaneGeometry(1, 1);
         const mouseM = new THREE.RawShaderMaterial({
@@ -673,21 +660,23 @@ export default function LiquidEther({
             px: { value: simProps.cellScale },
             force: { value: new THREE.Vector2(0, 0) },
             center: { value: new THREE.Vector2(0, 0) },
-            scale: { value: new THREE.Vector2(simProps.cursor_size, simProps.cursor_size) }
+            scale: { value: new THREE.Vector2(simProps.cursor_size as number, simProps.cursor_size as number) } // Perbaikan: Type assertion aman disini
           }
         });
         this.mouse = new THREE.Mesh(mouseG, mouseM);
         this.scene!.add(this.mouse);
       }
-
       update(args?: { mouse_force?: number; cellScale?: THREE.Vector2; cursor_size?: number }) {
         const props = args || {};
         const forceX = (Mouse.diff.x / 2) * (props.mouse_force || 0);
         const forceY = (Mouse.diff.y / 2) * (props.mouse_force || 0);
-        const cellScale = props.cellScale || { x: 1, y: 1 };
+        
+        // Perbaikan: Gunakan type guard untuk cellScale
+        const cellScale = props.cellScale || new THREE.Vector2(1, 1);
         const cursorSize = props.cursor_size || 0;
         const cursorSizeX = cursorSize * cellScale.x;
         const cursorSizeY = cursorSize * cellScale.y;
+
         const centerX = Math.min(
           Math.max(Mouse.coords.x, -1 + cursorSizeX + cellScale.x * 2),
           1 - cursorSizeX - cellScale.x * 2
@@ -705,43 +694,46 @@ export default function LiquidEther({
     }
 
     class Viscous extends ShaderPass {
-      constructor(simProps: any) {
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) {
         super({
           material: {
             vertexShader: face_vert,
             fragmentShader: viscous_frag,
             uniforms: {
               boundarySpace: { value: simProps.boundarySpace },
-              velocity: { value: simProps.src.texture },
-              velocity_new: { value: simProps.dst_.texture },
+              velocity: { value: (simProps.src as THREE.WebGLRenderTarget).texture },
+              velocity_new: { value: (simProps.dst_ as THREE.WebGLRenderTarget).texture },
               v: { value: simProps.viscous },
               px: { value: simProps.cellScale },
               dt: { value: simProps.dt }
             }
           },
-          output: simProps.dst,
-          output0: simProps.dst_,
-          output1: simProps.dst
+          output: simProps.dst as THREE.WebGLRenderTarget,
+          output0: simProps.dst_ as THREE.WebGLRenderTarget,
+          output1: simProps.dst as THREE.WebGLRenderTarget
         });
         this.init();
       }
-      // Perbaikan: Tentukan tipe yang diharapkan
       update(args?: { viscous?: number; iterations?: number; dt?: number }) {
         const { viscous, iterations, dt } = args || {};
         if (!this.uniforms) return;
-         let fbo_in: THREE.WebGLRenderTarget = this.props.output0 as THREE.WebGLRenderTarget;
+        
+        // 💡 Perbaikan Error: 'fbo_out' is used before being assigned.
+        let fbo_in: THREE.WebGLRenderTarget = this.props.output0 as THREE.WebGLRenderTarget;
         let fbo_out: THREE.WebGLRenderTarget = this.props.output1 as THREE.WebGLRenderTarget;
+
         if (typeof viscous === 'number') this.uniforms.v.value = viscous;
         const iter = iterations ?? 0;
         for (let i = 0; i < iter; i++) {
           if (i % 2 === 0) {
-            fbo_in = this.props.output0 as THREE.WebGLRenderTarget; 
+            fbo_in = this.props.output0 as THREE.WebGLRenderTarget;
             fbo_out = this.props.output1 as THREE.WebGLRenderTarget;
           } else {
             fbo_in = this.props.output1 as THREE.WebGLRenderTarget;
             fbo_out = this.props.output0 as THREE.WebGLRenderTarget;
           }
-          (this.uniforms.velocity_new.value as THREE.Texture) = fbo_in.texture; 
+          (this.uniforms.velocity_new.value as THREE.Texture) = fbo_in.texture;
           this.props.output = fbo_out;
           if (typeof dt === 'number') this.uniforms.dt.value = dt;
           super.update();
@@ -751,23 +743,23 @@ export default function LiquidEther({
     }
 
     class Divergence extends ShaderPass {
-      constructor(simProps: any) {
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) {
         super({
           material: {
             vertexShader: face_vert,
             fragmentShader: divergence_frag,
             uniforms: {
               boundarySpace: { value: simProps.boundarySpace },
-              velocity: { value: simProps.src.texture },
+              velocity: { value: (simProps.src as THREE.WebGLRenderTarget).texture },
               px: { value: simProps.cellScale },
               dt: { value: simProps.dt }
             }
           },
-          output: simProps.dst
+          output: simProps.dst as THREE.WebGLRenderTarget
         });
         this.init();
       }
-      // Perbaikan: Tentukan tipe yang diharapkan
       update(args?: { vel?: THREE.WebGLRenderTarget }) {
         const { vel } = args || {};
         if (this.uniforms && vel) {
@@ -778,29 +770,32 @@ export default function LiquidEther({
     }
 
     class Poisson extends ShaderPass {
-      constructor(simProps: any) {
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) {
         super({
           material: {
             vertexShader: face_vert,
             fragmentShader: poisson_frag,
             uniforms: {
               boundarySpace: { value: simProps.boundarySpace },
-              pressure: { value: simProps.dst_.texture },
-              divergence: { value: simProps.src.texture },
+              pressure: { value: (simProps.dst_ as THREE.WebGLRenderTarget).texture },
+              divergence: { value: (simProps.src as THREE.WebGLRenderTarget).texture },
               px: { value: simProps.cellScale }
             }
           },
-          output: simProps.dst,
-          output0: simProps.dst_,
-          output1: simProps.dst
+          output: simProps.dst as THREE.WebGLRenderTarget,
+          output0: simProps.dst_ as THREE.WebGLRenderTarget,
+          output1: simProps.dst as THREE.WebGLRenderTarget
         });
         this.init();
       }
-      // Perbaikan: Tentukan tipe yang diharapkan
       update(args?: { iterations?: number }) {
         const { iterations } = args || {};
+        
+        // 💡 Perbaikan Error: 'p_out' is used before being assigned.
         let p_in: THREE.WebGLRenderTarget = this.props.output0 as THREE.WebGLRenderTarget; 
         let p_out: THREE.WebGLRenderTarget = this.props.output1 as THREE.WebGLRenderTarget;
+
         const iter = iterations ?? 0;
         for (let i = 0; i < iter; i++) {
           if (i % 2 === 0) {
@@ -819,24 +814,24 @@ export default function LiquidEther({
     }
 
     class Pressure extends ShaderPass {
-      constructor(simProps: any) {
+      // Perbaikan: Ganti 'simProps: any'
+      constructor(simProps: Record<string, unknown>) {
         super({
           material: {
             vertexShader: face_vert,
             fragmentShader: pressure_frag,
             uniforms: {
               boundarySpace: { value: simProps.boundarySpace },
-              pressure: { value: simProps.src_p.texture },
-              velocity: { value: simProps.src_v.texture },
+              pressure: { value: (simProps.src_p as THREE.WebGLRenderTarget).texture },
+              velocity: { value: (simProps.src_v as THREE.WebGLRenderTarget).texture },
               px: { value: simProps.cellScale },
               dt: { value: simProps.dt }
             }
           },
-          output: simProps.dst
+          output: simProps.dst as THREE.WebGLRenderTarget
         });
         this.init();
       }
-      // Perbaikan: Tentukan tipe yang diharapkan
       update(args?: { vel?: THREE.WebGLRenderTarget; pressure?: THREE.WebGLRenderTarget }) {
         const { vel, pressure } = args || {};
         if (this.uniforms && vel && pressure) {
@@ -867,8 +862,7 @@ export default function LiquidEther({
       divergence!: Divergence;
       poisson!: Poisson;
       pressure!: Pressure;
-      // Perbaikan: Gunakan Partial<SimOptions>
-      constructor(options?: Partial<SimOptions>) { 
+      constructor(options?: Partial<SimOptions>) {
         this.options = {
           iterations_poisson: 32,
           iterations_viscous: 32,
@@ -905,13 +899,11 @@ export default function LiquidEther({
           wrapT: THREE.ClampToEdgeWrapping
         } as const;
         for (const key in this.fbos) {
-          // Type assertion aman: fbos[key] pasti WebGLRenderTarget setelah init
-          this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, opts); 
+          this.fbos[key] = new THREE.WebGLRenderTarget(this.fboSize.x, this.fboSize.y, opts);
         }
       }
       createShaderPass() {
-        // Tipe argumen di constructor ShaderPass diabaikan sementara
-        this.advection = new Advection({ 
+        this.advection = new Advection({
           cellScale: this.cellScale,
           fboSize: this.fboSize,
           dt: this.options.dt,
@@ -970,37 +962,22 @@ export default function LiquidEther({
       update() {
         if (this.options.isBounce) this.boundarySpace.set(0, 0);
         else this.boundarySpace.copy(this.cellScale);
-        
-        // Pembaruan Advection
         this.advection.update({ dt: this.options.dt, isBounce: this.options.isBounce, BFECC: this.options.BFECC });
-        
-        // Pembaruan External Force
         this.externalForce.update({
           cursor_size: this.options.cursor_size,
           mouse_force: this.options.mouse_force,
           cellScale: this.cellScale
         });
-        
         let vel: THREE.WebGLRenderTarget = this.fbos.vel_1!;
-        
-        // Pembaruan Viscous
         if (this.options.isViscous) {
-          // Type assertion pada return value Viscous.update()
           vel = this.viscous.update({
             viscous: this.options.viscous,
             iterations: this.options.iterations_viscous,
             dt: this.options.dt
-          }) as THREE.WebGLRenderTarget; 
+          }) as THREE.WebGLRenderTarget;
         }
-        
-        // Pembaruan Divergence
         this.divergence.update({ vel });
-        
-        // Pembaruan Poisson
-        // Type assertion pada return value Poisson.update()
-        const pressure = this.poisson.update({ iterations: this.options.iterations_poisson }) as THREE.WebGLRenderTarget; 
-        
-        // Pembaruan Pressure
+        const pressure = this.poisson.update({ iterations: this.options.iterations_poisson }) as THREE.WebGLRenderTarget;
         this.pressure.update({ vel, pressure });
       }
     }
@@ -1011,19 +988,7 @@ export default function LiquidEther({
       camera: THREE.Camera;
       output: THREE.Mesh;
       constructor() {
-        // Asumsikan konstruktor Simulation menerima tipe yang benar
-        this.simulation = new Simulation({
-            iterations_poisson: iterationsPoisson,
-            iterations_viscous: iterationsViscous,
-            mouse_force: mouseForce,
-            resolution: resolution,
-            cursor_size: cursorSize,
-            viscous: viscous,
-            isBounce: isBounce,
-            dt: dt,
-            isViscous: isViscous,
-            BFECC: BFECC,
-        });
+        this.simulation = new Simulation();
         this.scene = new THREE.Scene();
         this.camera = new THREE.Camera();
         this.output = new THREE.Mesh(
@@ -1057,8 +1022,19 @@ export default function LiquidEther({
       }
     }
 
+    // Perbaikan: Ganti 'props: any'
+    interface WebGLManagerProps {
+      $wrapper: HTMLElement;
+      autoDemo: boolean;
+      autoSpeed: number;
+      autoIntensity: number;
+      takeoverDuration: number;
+      autoResumeDelay: number;
+      autoRampDuration: number;
+    }
+
     class WebGLManager implements LiquidEtherWebGL {
-      props: any;
+      props: WebGLManagerProps;
       output!: Output;
       autoDriver?: AutoDriver;
       lastUserInteraction = performance.now();
@@ -1066,7 +1042,8 @@ export default function LiquidEther({
       private _loop = this.loop.bind(this);
       private _resize = this.resize.bind(this);
       private _onVisibility?: () => void;
-      constructor(props: any) {
+      // Perbaikan: Ganti 'props: any'
+      constructor(props: WebGLManagerProps) {
         this.props = props;
         Common.init(props.$wrapper);
         Mouse.init(props.$wrapper);
@@ -1076,7 +1053,7 @@ export default function LiquidEther({
           this.lastUserInteraction = performance.now();
           if (this.autoDriver) this.autoDriver.forceStop();
         };
-        // Perbaikan: Tipe 'this as any' diganti menjadi 'this'
+        // Perbaikan: Menghilangkan 'this as any'
         this.autoDriver = new AutoDriver(Mouse, this, { 
           enabled: props.autoDemo,
           speed: props.autoSpeed,

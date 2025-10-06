@@ -1,11 +1,10 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import User, { IUser } from "@/models/User"; 
 
 export async function GET(req: Request) {
   try {
     await connectDB();
-    // Gunakan NextRequest jika Anda berada di Next.js 13/14 App Router
     const { searchParams } = new URL(req.url); 
     const email = searchParams.get("email");
 
