@@ -22,5 +22,11 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ message: "Login berhasil", user: { id: user._id, name: user.name } });
-  } 
+  } catch (_err) {
+    console.error("Login Error:", _err);
+    return NextResponse.json(
+      { success: false, message: "Login gagal" },
+      { status: 500 }
+    );
+  }
 }
