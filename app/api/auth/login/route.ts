@@ -22,7 +22,5 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ message: "Login berhasil", user: { id: user._id, name: user.name } });
-  } catch (err) {
-    return NextResponse.json({ error: "Terjadi kesalahan" }, { status: 500 });
-  }
+  } 
 }

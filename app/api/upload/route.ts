@@ -8,8 +8,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET!,
 });
 
-
-
 export async function POST(req: Request) {
   try {
     const contentType = req.headers.get("content-type") || ""; 
@@ -46,24 +44,23 @@ export async function POST(req: Request) {
       const bytes = await file.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
-      // 🚀 Upload ke Cloudinary
-      const result: CloudinaryUploadResult = await new Promise((resolve, reject) => {
+      const result: UploadApiResponse = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           { folder: "jakarta_official" },
           (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
             if (error) reject(error);
-            else if (result) resolve(result as CloudinaryUploadResult); 
+            else if (result) resolve(result); 
             else reject(new Error("Cloudinary upload failed with no error message."));
           }
         );
         uploadStream.end(buffer);
       });
+      
       return NextResponse.json({
         success: true,
         url: result.secure_url, 
       });
     }
-
 
     return NextResponse.json(
       { success: false, message: "Unsupported content type" },

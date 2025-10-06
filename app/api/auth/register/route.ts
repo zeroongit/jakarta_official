@@ -18,9 +18,31 @@ export async function POST(req: Request) {
       );
     }
 
+ 
+    if (!password) {
+        return NextResponse.json(
+            { success: false, message: "Password harus diisi" },
+            { status: 400 }
+        );
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 5 * 60 * 1000); // 5 menit
 
+  
+    await User.create({
+      communityId: `JKT-${Math.random().toString(36).substring(2, 8).toUpperCase()}`,
+      name,
+      email,
+      password: hashedPassword, 
+      otp: otp, 
+      otpExpires: otpExpires,
+      verified: false,
+    });
+
+    // 4. Kirim Email
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -44,8 +66,8 @@ export async function POST(req: Request) {
       },
       { status: 201 }
     );
-  } catch (err) {
-    console.error("❌ Register error:", err);
+  } catch (_err) { 
+    console.error("❌ Register error:", _err);
     return NextResponse.json(
       { success: false, message: "Gagal register" },
       { status: 500 }
