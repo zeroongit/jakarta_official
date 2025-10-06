@@ -571,7 +571,7 @@ export default function LiquidEther({
       }
       // Perbaikan: Ganti '..._args: any[]' menjadi '..._args: unknown[]'
       // Warning: '_args' is defined but never used. -> Abaikan dengan _args
-      init(..._args: unknown[]) {
+      init() {
         this.scene = new THREE.Scene();
         this.camera = new THREE.Camera();
         if (this.uniforms) {
@@ -583,7 +583,7 @@ export default function LiquidEther({
       }
       // Perbaikan: Ganti '..._args: any[]' menjadi '..._args: unknown[]'
       // Warning: '_args' is defined but never used. -> Abaikan dengan _args
-      update(..._args: unknown[]) {
+      update() {
         if (!Common.renderer || !this.scene || !this.camera) return;
         Common.renderer.setRenderTarget(this.props.output || null);
         Common.renderer.render(this.scene, this.camera);

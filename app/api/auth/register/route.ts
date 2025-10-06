@@ -8,7 +8,7 @@ import nodemailer from "nodemailer";
 export async function POST(req: Request) {
   try {
     await connectDB();
-    const { name, email, password, phone } = await req.json();
+    const { name, email, password } = await req.json();
 
     const existing = await User.findOne({ email });
     if (existing) {
@@ -18,7 +18,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const hashed = password ? await bcrypt.hash(password, 10) : null;
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
