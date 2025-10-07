@@ -642,53 +642,77 @@ export default function LiquidEther({
     }
 
     class ExternalForce extends ShaderPass {
-      mouse!: THREE.Mesh;
-      // Perbaikan: Ganti 'simProps: any'
-      constructor(simProps: Record<string, unknown>) {
+    mouse!: THREE.Mesh;
+    
+    // Variabel untuk menyimpan properti yang dibutuhkan oleh initMouse
+    private mouseUniforms: Uniforms;
+
+    constructor(simProps: Record<string, unknown>) {
         super({ output: simProps.dst as THREE.WebGLRenderTarget });
-        this.init(simProps);
-      }
-      init(simProps: Record<string, unknown>) {
-        super.init();
-        const mouseG = new THREE.PlaneGeometry(1, 1);
-        const mouseM = new THREE.RawShaderMaterial({
-          vertexShader: mouse_vert,
-          fragmentShader: externalForce_frag,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-          uniforms: {
+        
+        // 1. Definisikan Uniforms yang dibutuhkan untuk mouse
+        this.mouseUniforms = {
             px: { value: simProps.cellScale },
             force: { value: new THREE.Vector2(0, 0) },
             center: { value: new THREE.Vector2(0, 0) },
-            scale: { value: new THREE.Vector2(simProps.cursor_size as number, simProps.cursor_size as number) } // Perbaikan: Type assertion aman disini
-          }
+            scale: { value: new THREE.Vector2(simProps.cursor_size as number, simProps.cursor_size as number) }
+        };
+
+        // 2. Buat Mouse Mesh di sini (Constructor), bukan di init()
+        const mouseG = new THREE.PlaneGeometry(1, 1);
+        const mouseM = new THREE.RawShaderMaterial({
+            // Asumsi: mouse_vert dan externalForce_frag didefinisikan di luar scope ini
+            vertexShader: mouse_vert, 
+            fragmentShader: externalForce_frag,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            uniforms: this.mouseUniforms // Gunakan uniforms yang sudah disiapkan
         });
         this.mouse = new THREE.Mesh(mouseG, mouseM);
-        this.scene!.add(this.mouse);
-      }
-      update(args?: { mouse_force?: number; cellScale?: THREE.Vector2; cursor_size?: number }) {
+
+        // Panggil init() parent (tanpa argumen)
+        this.init();
+    }
+    
+    // ✅ FIX: Method init() kini tidak menerima argumen, sesuai dengan ShaderPass.init()
+    init() {
+        super.init();
+        // 💡 FIX: Tambahkan mesh ke scene setelah super.init() selesai
+        if (this.scene) {
+            this.scene.add(this.mouse); 
+        }
+        // Hapus semua logika pembuatan mesh di sini
+    }
+    
+    update(args?: { mouse_force?: number; cellScale?: THREE.Vector2; cursor_size?: number }) {
         const props = args || {};
+        // Asumsi: 'Mouse' adalah instance global MouseClass
+        // Asumsi: 'THREE.RawShaderMaterial' adalah tipe dari this.mouse.material
+        
         const forceX = (Mouse.diff.x / 2) * (props.mouse_force || 0);
         const forceY = (Mouse.diff.y / 2) * (props.mouse_force || 0);
         
-        // Perbaikan: Gunakan type guard untuk cellScale
         const cellScale = props.cellScale || new THREE.Vector2(1, 1);
         const cursorSize = props.cursor_size || 0;
         const cursorSizeX = cursorSize * cellScale.x;
         const cursorSizeY = cursorSize * cellScale.y;
 
         const centerX = Math.min(
-          Math.max(Mouse.coords.x, -1 + cursorSizeX + cellScale.x * 2),
-          1 - cursorSizeX - cellScale.x * 2
+            Math.max(Mouse.coords.x, -1 + cursorSizeX + cellScale.x * 2),
+            1 - cursorSizeX - cellScale.x * 2
         );
         const centerY = Math.min(
-          Math.max(Mouse.coords.y, -1 + cursorSizeY + cellScale.y * 2),
-          1 - cursorSizeY - cellScale.y * 2
+            Math.max(Mouse.coords.y, -1 + cursorSizeY + cellScale.y * 2),
+            1 - cursorSizeY - cellScale.y * 2
         );
+        
         const uniforms = (this.mouse.material as THREE.RawShaderMaterial).uniforms;
         uniforms.force.value.set(forceX, forceY);
         uniforms.center.value.set(centerX, centerY);
-        uniforms.scale.value.set(cursorSize, cursorSize);
+        
+        // Uniforms scale TIDAK PERLU di update setiap frame, cukup di constructor
+        // uniforms.scale.value.set(cursorSize, cursorSize); 
+        
         super.update();
       }
     }
