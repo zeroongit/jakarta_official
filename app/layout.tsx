@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react"; // 👈 WAJIB: Import Suspense
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import ClientWrapper from "@/components/ClientWrapper";
@@ -23,7 +24,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Context Provider */}
         <Providers>
           <Navbar />
-          <main className="relative z-10 pt-28">{children}</main>
+          
+          <Suspense 
+            fallback={
+              <main className="relative z-10 pt-28 flex justify-center items-center h-screen">
+                <p>Memuat konten...</p>
+              </main>
+            }
+          >
+            <main className="relative z-10 pt-28">{children}</main>
+          </Suspense>
+
           <Footer />
 
           <Toaster
