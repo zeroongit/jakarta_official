@@ -12,7 +12,9 @@ export interface IUser extends Document {
   otpExpires?: Date;
   verified: boolean;
   resetOtp?: string;
+  provider?: "manual" | "google";
   resetOtpExpires?: Date;
+  
 }
 
 const UserSchema = new Schema<IUser>(
@@ -33,6 +35,11 @@ const UserSchema = new Schema<IUser>(
     verified: { type: Boolean, default: false },
     resetOtp: { type: String },
     resetOtpExpires: { type: Date },
+    provider: {
+    type: String,
+    enum: ["manual", "google"],
+    default: "manual",
+  },
 
   },
   { timestamps: true }

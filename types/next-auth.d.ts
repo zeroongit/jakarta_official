@@ -10,6 +10,7 @@ declare module "next-auth" {
       phone: string;
       image?: string;
       verified: boolean;
+      provider: string;
     } & DefaultSession["user"];
   }
 
@@ -20,6 +21,7 @@ declare module "next-auth" {
     email: string;
     phone: string;
     image?: string;
-    verified: boolean; 
+    verified: boolean;
+    provider: string; 
   }
 }
