@@ -86,7 +86,6 @@ const handler = NextAuth({
         let existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
-          // 🔹 Buat user baru tanpa password tapi perlu OTP
           const otp = generateOTP();
           const otpExpires = new Date(Date.now() + 5 * 60 * 1000);
 
@@ -95,8 +94,8 @@ const handler = NextAuth({
             name: user.name,
             email: user.email,
             phone: "",
-            profileImage: user.image,
-            password: null, // Tidak perlu password untuk Google
+            profileImage: user.image || "/images/default-avatar.jpg",
+            password: null, 
             otp,
             otpExpires,
             verified: false,
