@@ -94,7 +94,7 @@ const handler = NextAuth({
             name: user.name,
             email: user.email,
             phone: "",
-            profileImage: user.image || "/images/default-avatar.jpg",
+            profileImage: "/images/default-avatar.jpg",
             password: null, 
             otp,
             otpExpires,
